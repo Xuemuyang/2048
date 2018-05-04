@@ -72,6 +72,7 @@ function generateOneNumber() {
     // 随机一个位置
     var randx = parseInt(Math.floor(Math.random() * 4))
     var randy = parseInt(Math.floor(Math.random() * 4))
+    var times = 0;
     while (times < 50) { // 这个地方不可以写true，格子多了之后随机概率会比较小，给定50次
         if(board[randx][randy] ===0)
             break
