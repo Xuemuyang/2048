@@ -2,9 +2,33 @@ var board = new Array();
 var score = 0;
 var hasConflicted = new Array();
 
+var startx = 0;
+var starty = 0;
+var endx = 0;
+var endy = 0;
+
 $(function() {
+    prepareForMobile();
     newgame();
 })
+
+function prepareForMobile() {
+
+    if (documentWidth > 500) {
+        gridContainerWidth = 500;
+        cellSpace = 20;
+        cellSideLength = 100;
+    }
+
+    $('#grid-container').css('width', gridContainerWidth - 2*cellSpace);
+    $('#grid-container').css('height', gridContainerWidth - 2*cellSpace);
+    $('#grid-container').css('padding', cellSpace);
+    $('#grid-container').css('border-radius', 0.02*gridContainerWidth);
+
+    $('.grid-cell').css('width', cellSideLength);
+    $('.grid-cell').css('height', cellSideLength);
+    $('.grid-cell').css('border-radius', 0.02*cellSideLength);
+}
 
 function newgame() {
     //初始化棋盘格
@@ -48,11 +72,11 @@ function updateBoardView() {
             if (board[i][j] === 0) {
                 theNumberCell.css('width', '0px');
                 theNumberCell.css('height', '0px');
-                theNumberCell.css('top', getPosTop(i, j) + 50);
-                theNumberCell.css('left', getPosLeft(i, j) + 50);
+                theNumberCell.css('top', getPosTop(i, j) + cellSideLength/2);
+                theNumberCell.css('left', getPosLeft(i, j) + cellSideLength/2);
             } else {
-                theNumberCell.css('width', '100px');
-                theNumberCell.css('height', '100px');
+                theNumberCell.css('width', cellSideLength);
+                theNumberCell.css('height', cellSideLength);
                 theNumberCell.css('top', getPosTop(i, j));
                 theNumberCell.css('left', getPosLeft(i, j));
                 theNumberCell.css('background-color', getNumberBackgroundColor(board[i][j]));
@@ -63,6 +87,8 @@ function updateBoardView() {
             hasConflicted[i][j] = false;
         }
     }
+    $('.number-cell').css('line-height', cellSideLength + 'px');
+    $('.number-cell').css('font-size', 0.6*cellSideLength + 'px');
 }
 
 function generateOneNumber() {
@@ -107,21 +133,25 @@ function generateOneNumber() {
 $(document).keydown(function() {
     switch(event.keyCode) {
         case 37: // left
+            event.preventDefault(); // 放在这里虽然代码量多了，但是可能有些操作不需要禁止默认行为
             if(moveLeft()) {
                 afterMoveAction();
             }
             break;
         case 38: // up
+            event.preventDefault();
             if(moveUp()) {
                 afterMoveAction();
             }
             break;
         case 39: // right
+            event.preventDefault();
             if(moveRight()) {
                 afterMoveAction();
             }
             break;
         case 40: // down
+            event.preventDefault();
             if(moveDown()) {
                 afterMoveAction();
             }
@@ -139,6 +169,52 @@ function afterMoveAction() {
         isgameOver();
     }, 300);
 }
+
+document.addEventListener('touchstart', function() {
+    startx = event.touches[0].pageX;
+    starty = event.touches[0].pageY;
+});
+
+document.addEventListener('touchend', function() {
+    endx = event.changedTouches[0].pageX;
+    endy = event.changedTouches[0].pageY;
+
+    var deltax = endx - startx;
+    var deltay = endy - starty;
+
+    if (Math.abs(deltax) < 0.3*documentWidth && Math.abs(deltay) < 0.3*documentWidth) {
+        return;
+    }
+
+    //x
+    if (Math.abs(deltax) >= Math.abs(deltay)) {
+        if (deltax > 0) {
+            //move right
+            if(moveRight()) {
+                afterMoveAction();
+            }
+        } else {
+            // move left
+            if(moveLeft()) {
+                afterMoveAction();
+            }
+        }
+    }
+    //y
+    else {
+        if (deltay > 0) {
+            // move down
+            if(moveDown()) {
+                afterMoveAction();
+            }
+        } else {
+            // move up
+            if(moveUp()) {
+                afterMoveAction();
+            }
+        }
+    }
+});
 
 function isgameOver() {
     if (nospace(board) && nomove(board)) {
